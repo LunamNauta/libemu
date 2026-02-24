@@ -70,6 +70,15 @@ void mos6502_process_transfer(struct mos6502* chip, uint8_t instruction){
     chip->z = result == 0;
     chip->n = result & 0x80;
 }
+void mos6502_process_arithmetic(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_shift(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_bitwise(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_compare(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_branch(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_jump(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
+void mos6502_process_stack(struct mos6502* chip, uint8_t instruction);
+void mos6502_process_flags(struct mos6502* chip, uint8_t instruction);
+void mos6502_process_illegal(struct mos6502* chip, uint8_t instruction, uint8_t* memory);
 
 void mos6502_tick(struct mos6502* chip){
     if (chip->remaining_cycles != 0){
@@ -79,9 +88,20 @@ void mos6502_tick(struct mos6502* chip){
     }
 
     struct mos6502_opcode opcode = mos6502_next_opcode(chip);
-    uint8_t* memory = mos6502_fetch_memory(chip, opcode.address_mode);
     chip->remaining_cycles = opcode.cycles;
 
+    if (opcode.instruction <= MOS6502_STY) return mos6502_process_access(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_TYA) return mos6502_process_transfer(chip, opcode.instruction);
+    if (opcode.instruction <= MOS6502_DEY) return mos6502_process_arithmetic(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_ROR) return mos6502_process_shift(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_BIT) return mos6502_process_bitwise(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_CPY) return mos6502_process_compare(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_BVS) return mos6502_process_branch(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_RTI) return mos6502_process_jump(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
+    if (opcode.instruction <= MOS6502_TSX) return mos6502_process_stack(chip, opcode.instruction);
+    if (opcode.instruction <= MOS6502_CLV) return mos6502_process_flags(chip, opcode.instruction);
+    if (opcode.instruction == MOS6502_NOP) return;
+    return mos6502_process_illegal(chip, opcode.instruction, mos6502_fetch_memory(chip, opcode.address_mode));
 }
 
 #endif
