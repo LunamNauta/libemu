@@ -1,0 +1,24 @@
+#ifndef MOS6502_ADDRESSING_HEADER
+#define MOS6502_ADDRESSING_HEADER
+
+#include <stdint.h>
+
+struct mos6502;
+
+#define MOS6502_IMPLICIT    0x00
+#define MOS6502_ACCUMULATOR 0x01
+#define MOS6502_IMMEDIATE   0x02
+#define MOS6502_ZEROPAGE    0x03
+#define MOS6502_ZEROPAGEX   0x04
+#define MOS6502_ZEROPAGEY   0x05
+#define MOS6502_RELATIVE    0x06
+#define MOS6502_ABSOLUTE    0x07
+#define MOS6502_ABSOLUTEX   0x08
+#define MOS6502_ABSOLUTEY   0x09
+#define MOS6502_INDIRECT    0x0a
+#define MOS6502_INDIRECTX   0x0b
+#define MOS6502_INDIRECTY   0x0c
+
+uint8_t* mos6502_address_access(struct mos6502* chip);
+
+#endif
