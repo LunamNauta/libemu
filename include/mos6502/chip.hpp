@@ -48,7 +48,7 @@ public:
     
     template <class Condition>
     void tick_cnt_cnd(std::size_t cnt, Condition cnd){
-        while (cnt-- && cnd(this)) tick();
+        while (cnt-- && !cnd(this)) tick();
     }
 
     template <class Condition>
