@@ -1,5 +1,5 @@
-#ifndef MOS6502_INSTRUCTIONS_HEADER
-#define MOS6502_INSTRUCTIONS_HEADER
+#ifndef LIBEMU_MOS6502_UCODE_HEADER
+#define LIBEMU_MOS6502_UCODE_HEADER
 
 #include <cstdint>
 
@@ -10,8 +10,8 @@ namespace libemu::mos6502{
 // Timing logic: https://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
 // Instructions: https://www.nesdev.org/wiki/Instruction_reference
 
-#define MOS6502_ACCUMULATOR(cmd) ucode::READ_NEXT,   cmd
-#define MOS6502_IMPLIED(cmd)     ucode::READ_NEXT,   cmd
+#define MOS6502_ACCUMULATOR(cmd) ucode::READ_VALUE,   cmd
+#define MOS6502_IMPLIED(cmd)     ucode::READ_VALUE,   cmd
 #define MOS6502_IMMEDIATE(cmd)   ucode::FETCH_VALUE, cmd
 
 #define MOS6502_ABSOLUTE_RD(cmd) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, ucode::READ_ADDR, cmd
@@ -28,7 +28,7 @@ namespace libemu::mos6502{
 
 #define MOS6502_ABSOLUTEI_RD(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR,     ucode::PUNISH_PAGE, ucode::READ_ADDR,  cmd
 #define MOS6502_ABSOLUTEI_RW(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, ucode::READ_ADDR,   ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_ABSOLUTEI_WR(cmd, reg) ucdoe::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
+#define MOS6502_ABSOLUTEI_WR(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
 
 #define MOS6502_INDIRECTX_RD(cmd) ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, cmd
 #define MOS6502_INDIRECTX_RW(cmd) ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
@@ -39,18 +39,7 @@ namespace libemu::mos6502{
 #define MOS6502_INDIRECTY_WR(cmd) ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
 
 enum class ucode : std::uint8_t{
-    FETCH_OPCODE, 
-
-    PUNISH_PAGE,
-    READ_NEXT,
-    ADDR_PX,
-    ADDR_PY,
-    READ_ADDR,
-    
-    FETCH_POINTER,
-    FETCH_EFF_ADDR_LOW,
-    FETCH_EFF_ADDR_HIGH_PY,
-    FETCH_EFF_ADDR_HIGH,
+    FETCH_OPCODE,
 
     FETCH_VALUE,
     FETCH_ADDR,
@@ -58,6 +47,19 @@ enum class ucode : std::uint8_t{
     FETCH_ADDR_HIGH_PX,
     FETCH_ADDR_HIGH_PY,
     FETCH_ADDR_HIGH,
+
+    FETCH_POINTER,
+    FETCH_EFF_ADDR_LOW,
+    FETCH_EFF_ADDR_HIGH_PY,
+    FETCH_EFF_ADDR_HIGH,
+
+    PUNISH_PAGE,
+
+    ADDR_PX,
+    ADDR_PY,
+    READ_VALUE,
+    READ_ADDR_FIX,
+    READ_ADDR,
 
     WRITE_ADDR,
 
@@ -174,100 +176,100 @@ static const ucode instructions[256][8] = {
     {},
     {},
     {},
+    { MOS6502_INDIRECTX_RD(ucode::ADC) },
     {},
     {},
     {},
+    { MOS6502_ZEROPAGE_RD(ucode::ADC) },
     {},
     {},
     {},
+    { MOS6502_IMMEDIATE(ucode::ADC) },
     {},
     {},
     {},
+    { MOS6502_ABSOLUTE_RD(ucode::ADC) },
     {},
     {},
     {},
+    { MOS6502_INDIRECTY_RD(ucode::ADC) },
     {},
     {},
     {},
+    { MOS6502_ZEROPAGEI_RD(ucode::ADC, X) },
     {},
     {},
     {},
+    { MOS6502_ABSOLUTEI_RD(ucode::ADC, Y) },
     {},
     {},
     {},
+    { MOS6502_ABSOLUTEI_RD(ucode::ADC, X) },
     {},
     {},
     {},
+    { MOS6502_INDIRECTX_WR(ucode::STA) },
     {},
     {},
+    { MOS6502_ZEROPAGE_WR(ucode::STY) },
+    { MOS6502_ZEROPAGE_WR(ucode::STA) },
+    { MOS6502_ZEROPAGE_WR(ucode::STX) },
     {},
     {},
     {},
+    { MOS6502_IMPLIED(ucode::TXA) },
     {},
+    { MOS6502_ABSOLUTE_WR(ucode::STY) },
+    { MOS6502_ABSOLUTE_WR(ucode::STA) },
+    { MOS6502_ABSOLUTE_WR(ucode::STX) },
     {},
     {},
+    { MOS6502_INDIRECTY_WR(ucode::STA) },
     {},
     {},
+    { MOS6502_ZEROPAGEI_WR(ucode::STX, X) },
+    { MOS6502_ZEROPAGEI_WR(ucode::STA, X) },
+    { MOS6502_ZEROPAGEI_WR(ucode::STX, Y) },
     {},
+    { MOS6502_IMPLIED(ucode::TYA) },
+    { MOS6502_ABSOLUTEI_WR(ucode::STA, Y) },
     {},
     {},
     {},
+    { MOS6502_ABSOLUTEI_WR(ucode::STA, X) },
     {},
     {},
+    { MOS6502_IMMEDIATE(ucode::LDY) },
+    { MOS6502_INDIRECTX_RD(ucode::LDA) },
+    { MOS6502_IMMEDIATE(ucode::LDX) },
     {},
+    { MOS6502_ZEROPAGE_RD(ucode::LDY) },
+    { MOS6502_ZEROPAGE_RD(ucode::LDA) },
+    { MOS6502_ZEROPAGE_RD(ucode::LDX) },
     {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
+    { MOS6502_IMPLIED(ucode::TAY) },
     { MOS6502_IMMEDIATE(ucode::LDA) },
+    { MOS6502_IMPLIED(ucode::TAX) },
+    {},
+    { MOS6502_ABSOLUTE_RD(ucode::LDY) },
+    { MOS6502_ABSOLUTE_RD(ucode::LDA) },
+    { MOS6502_ABSOLUTE_RD(ucode::LDX) },
     {},
     {},
+    { MOS6502_INDIRECTY_RD(ucode::LDA) },
     {},
     {},
+    { MOS6502_ZEROPAGEI_RD(ucode::LDY, X) },
+    { MOS6502_ZEROPAGEI_RD(ucode::LDA, X) },
+    { MOS6502_ZEROPAGEI_RD(ucode::LDX, Y) },
     {},
     {},
+    { MOS6502_ABSOLUTEI_RD(ucode::LDA, Y)},
     {},
     {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
+    { MOS6502_ABSOLUTEI_RD(ucode::LDY, X) },
+    { MOS6502_ABSOLUTEI_RD(ucode::LDA, X) },
+    { MOS6502_ABSOLUTEI_RD(ucode::LDX, Y) },
     {},
     {},
     {},
