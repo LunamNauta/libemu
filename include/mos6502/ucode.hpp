@@ -10,36 +10,45 @@ namespace libemu::mos6502{
 // Timing logic: https://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
 // Instructions: https://www.nesdev.org/wiki/Instruction_reference
 
-#define MOS6502_ACCUMULATOR(cmd) ucode::READ_VALUE,   cmd
-#define MOS6502_IMPLIED(cmd)     ucode::READ_VALUE,   cmd
-#define MOS6502_IMMEDIATE(cmd)   ucode::FETCH_VALUE, cmd
+#define MOS6502_ACCUMULATOR(cmd) ucode::ACCUMULATOR, ucode::READ_VALUE,  cmd
+#define MOS6502_IMPLIED(cmd)     ucode::IMPLIED,     ucode::READ_VALUE,  cmd
+#define MOS6502_IMMEDIATE(cmd)   ucode::IMMEDIATE,   ucode::FETCH_VALUE, cmd
 
-#define MOS6502_ABSOLUTE_RD(cmd) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, ucode::READ_ADDR, cmd
-#define MOS6502_ABSOLUTE_RW(cmd) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_ABSOLUTE_WR(cmd) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, cmd,              ucode::WRITE_ADDR
+#define MOS6502_ABSOLUTE_RD(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, ucode::READ_ADDR, cmd
+#define MOS6502_ABSOLUTE_RW(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_ABSOLUTE_WR(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH, cmd,              ucode::WRITE_ADDR
 
-#define MOS6502_ZEROPAGE_RD(cmd) ucode::FETCH_ADDR, ucode::READ_ADDR, cmd
-#define MOS6502_ZEROPAGE_RW(cmd) ucode::FETCH_ADDR, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_ZEROPAGE_WR(cmd) ucode::FETCH_ADDR, cmd,              ucode::WRITE_ADDR
+#define MOS6502_ZEROPAGE_RD(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR, ucode::READ_ADDR, cmd
+#define MOS6502_ZEROPAGE_RW(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_ZEROPAGE_WR(cmd) ucode::MEMORY_BUS, ucode::FETCH_ADDR, cmd,              ucode::WRITE_ADDR
 
-#define MOS6502_ZEROPAGEI_RD(cmd, reg) ucode::FETCH_ADDR, ucode::ADDR_P##reg, ucode::READ_ADDR, cmd
-#define MOS6502_ZEROPAGEI_RW(cmd, reg) ucode::FETCH_ADDR, ucode::ADDR_P##reg, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_ZEROPAGEI_WR(cmd, reg) ucode::FETCH_ADDR, ucode::ADDR_P##reg, cmd,              ucode::WRITE_ADDR
+#define MOS6502_ZEROPAGEI_RD(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR, ucode::ADDR_P##reg, ucode::READ_ADDR, cmd
+#define MOS6502_ZEROPAGEI_RW(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR, ucode::ADDR_P##reg, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_ZEROPAGEI_WR(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR, ucode::ADDR_P##reg, cmd,              ucode::WRITE_ADDR
 
-#define MOS6502_ABSOLUTEI_RD(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR,     ucode::PUNISH_PAGE, ucode::READ_ADDR,  cmd
-#define MOS6502_ABSOLUTEI_RW(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, ucode::READ_ADDR,   ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_ABSOLUTEI_WR(cmd, reg) ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
+#define MOS6502_ABSOLUTEI_RD(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR,     ucode::PUNISH_PAGE, ucode::READ_ADDR,  cmd
+#define MOS6502_ABSOLUTEI_RW(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, ucode::READ_ADDR,   ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_ABSOLUTEI_WR(cmd, reg) ucode::MEMORY_BUS, ucode::FETCH_ADDR_LOW, ucode::FETCH_ADDR_HIGH_P##reg, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
 
-#define MOS6502_INDIRECTX_RD(cmd) ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, cmd
-#define MOS6502_INDIRECTX_RW(cmd) ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_INDIRECTX_WR(cmd) ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, cmd,              ucode::WRITE_ADDR
+#define MOS6502_INDIRECTX_RD(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, cmd
+#define MOS6502_INDIRECTX_RW(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, ucode::READ_ADDR, ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_INDIRECTX_WR(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::ADDR_PX, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH, cmd,              ucode::WRITE_ADDR
 
-#define MOS6502_INDIRECTY_RD(cmd) ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR,     ucode::PUNISH_PAGE, cmd
-#define MOS6502_INDIRECTY_RW(cmd) ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR_FIX, ucode::READ_ADDR,   ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
-#define MOS6502_INDIRECTY_WR(cmd) ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
+#define MOS6502_INDIRECTY_RD(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR,     ucode::PUNISH_PAGE, ucode::READ_ADDR, cmd
+#define MOS6502_INDIRECTY_RW(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR_FIX, ucode::READ_ADDR,   ucode::WRITE_ADDR, cmd, ucode::WRITE_ADDR
+#define MOS6502_INDIRECTY_WR(cmd) ucode::MEMORY_BUS, ucode::FETCH_POINTER, ucode::FETCH_EFF_ADDR_LOW, ucode::FETCH_EFF_ADDR_HIGH_PY, ucode::READ_ADDR_FIX, cmd,                ucode::WRITE_ADDR
 
 enum class ucode : std::uint8_t{
     FETCH_OPCODE,
+    
+    ADDRESS_SPACE_BEGIN, // Dummy value
+
+    ACCUMULATOR,
+    IMPLIED,
+    IMMEDIATE,
+    MEMORY_BUS,
+
+    PRE_INSTRUCTIONS_BEGIN, // Dummy value
 
     FETCH_VALUE,
     FETCH_ADDR,
@@ -53,6 +62,9 @@ enum class ucode : std::uint8_t{
     FETCH_EFF_ADDR_HIGH_PY,
     FETCH_EFF_ADDR_HIGH,
 
+    FETCH_RESET_LOW,
+    FETCH_RESET_HIGH,
+
     PUNISH_PAGE,
 
     ADDR_PX,
@@ -63,7 +75,12 @@ enum class ucode : std::uint8_t{
 
     WRITE_ADDR,
 
-    INSTRUCTION, // Dummy value
+    PUSH_STACK,
+    POP_STACK,
+
+    PUNISH_BRANCH,
+
+    INSTRUCTIONS_BEGIN, // Dummy value
 
     LDA, STA, LDX, STX, LDY, STY,
     TAX, TXA, TAY, TYA,
@@ -76,6 +93,16 @@ enum class ucode : std::uint8_t{
     PHA, PLA, PHP, PLP, TXS, TSX,
     CLC, SEC, CLI, SEI, CLD, SED, CLV,
     NOP
+};
+
+static const ucode reset_instructions[8] = {
+    ucode::NOP, // Reset hold
+    ucode::NOP, // Start state
+    ucode::PUSH_STACK,
+    ucode::PUSH_STACK,
+    ucode::PUSH_STACK,
+    ucode::FETCH_RESET_LOW,
+    ucode::FETCH_RESET_HIGH
 };
 
 static const ucode instructions[256][8] = {

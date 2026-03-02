@@ -28,7 +28,7 @@ set_target_properties(emu
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-file(GLOB_RECURSE example_sources ../examples/*.c)
+file(GLOB_RECURSE example_sources ../examples/*.cpp)
 
 foreach(example_file ${example_sources})
     get_filename_component(exe_name ${example_file} NAME_WE)
